@@ -8,7 +8,8 @@ int main(void)
     // Testing
     // Insert nodes
     int i;
-    for (i = 0; i < 10; i++) {
+    //for (i = 0; i > -3; i--) {
+    for (i = 0; i < 3; i++) {
         treeInsertNode(tree, i);
     }
     /*
@@ -21,6 +22,10 @@ int main(void)
     // Find a node
     Tree *found = treeFindNode(tree, 22);
     treePrintNode(found);
+    //treeRotateLeft(&tree);
+    //treeInsertNode(tree, -1);
+    //treeInsertNode(tree, -2);
+    //treeRotateRight(&tree);
     // Count nodes
     printf("Number of nodes in *tree: %d\n", treeCountNodes(tree));
     // Print out the tree

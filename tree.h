@@ -11,6 +11,9 @@ typedef struct Tree {
 // Creation and insertion
 Tree *  treeMakeNode(int key, int factor);
 void    treeInsertNode(Tree *tree, int key);
+int     treeInsertNodeAVL(Tree **tree, int key);
+void    treeRotateLeft(Tree **tree);
+void    treeRotateRight(Tree **tree);
 // Search
 Tree *  treeFindNode(Tree *tree, int key);
 // Printing
