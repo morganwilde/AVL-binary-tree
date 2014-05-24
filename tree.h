@@ -12,8 +12,11 @@ typedef struct Tree {
 Tree *  treeMakeNode(int key, int factor);
 void    treeInsertNode(Tree *tree, int key);
 int     treeInsertNodeAVL(Tree **tree, int key);
+// To be made private
 void    treeRotateLeft(Tree **tree);
 void    treeRotateRight(Tree **tree);
+void    treeFixLeftImbalance(Tree **tree);
+void    treeFixRightImbalance(Tree **tree);
 // Search
 Tree *  treeFindNode(Tree *tree, int key);
 // Printing

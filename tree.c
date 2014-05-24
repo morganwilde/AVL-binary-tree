@@ -55,12 +55,14 @@ int treeInsertNodeAVL(Tree **tree, int key)
             return 0;
         }
         // Figure which branch to take
+        // Return the change in depth of the branch
         if (node->key > key) {
             // Left
             delta = treeInsertNodeAVL(&node->left, key);
             if (delta == 0) {
                 return 0;
             } else {
+                // TODO change switch to two if statements
                 switch (node->factor) {
                     case 1:
                         node->factor = 0;
@@ -69,7 +71,7 @@ int treeInsertNodeAVL(Tree **tree, int key)
                         node->factor = -1;
                         return 1;
                     case -1:
-                        // Fix left imba
+                        treeFixLeftImbalance(tree);
                         return 0;
                 }
             }
@@ -81,7 +83,7 @@ int treeInsertNodeAVL(Tree **tree, int key)
             } else {
                 switch (node->factor) {
                     case 1:
-                        // Fix left imba
+                        treeFixRightImbalance(tree);
                         return 0;
                     case 0:
                         node->factor = 1;
@@ -93,6 +95,40 @@ int treeInsertNodeAVL(Tree **tree, int key)
             }
         }
     }
+}
+void treeFixLeftImbalance(Tree **tree)
+{
+    Tree *child = (*tree)->left;
+    if (child->factor != (*tree)->factor) {
+        // Double rotation
+        int factor = child->right->factor;
+        treeRotateLeft(&(*tree)->left);
+        treeRotateRight(tree);
+        (*tree)->factor = 0;
+        switch (factor) {
+            case 1:
+                (*tree)->left->factor   = -1;
+                (*tree)->right->factor  = 0;
+                break;
+            case 0:
+                (*tree)->left->factor   = 0;
+                (*tree)->right->factor  = 0;
+                break;
+            case -1:
+                (*tree)->left->factor   = 0;
+                (*tree)->right->factor  = 1;
+                break;
+        }
+    } else {
+        // Single rotation
+        treeRotateRight(tree);
+        (*tree)->right->factor  = 0;
+        (*tree)->factor         = 0;
+    }
+}
+void treeFixRightImbalance(Tree **tree)
+{
+
 }
 void treeRotateLeft(Tree **tree)
 {

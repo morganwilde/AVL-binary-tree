@@ -8,7 +8,7 @@ int main(void)
     Tree *tree = NULL;
     treeInsertNodeAVL(&tree, 0);
     int i;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 19; i++) {
         treeInsertNodeAVL(&tree, i);
     }
     // Find a node
