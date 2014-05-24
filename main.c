@@ -6,9 +6,10 @@ int main(void)
     // Testing
     // Insert nodes
     Tree *tree = NULL;
-    treeInsertNodeAVL(&tree, 0);
+    treeInsertNodeAVL(&tree, 8);
     int i;
-    for (i = 0; i < 19; i++) {
+    //for (i = -1; i > -8; i--) {
+    for (i = 1; i < 8; i++) {
         treeInsertNodeAVL(&tree, i);
     }
     // Find a node

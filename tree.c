@@ -5,7 +5,14 @@
 #define INDENT 4
 
 // Private functions
-void treePrinter(Tree *tree, int level);
+// AVL insertion
+int     treeInsertNodeAVL(Tree **tree, int key);
+void    treeRotateLeft(Tree **tree);
+void    treeRotateRight(Tree **tree);
+void    treeFixLeftImbalance(Tree **tree);
+void    treeFixRightImbalance(Tree **tree);
+// Printing
+void    treePrinter(Tree *tree, int level);
 // /Private functions
 
 Tree *treeMakeNode(int key, int factor)
@@ -128,6 +135,34 @@ void treeFixLeftImbalance(Tree **tree)
 }
 void treeFixRightImbalance(Tree **tree)
 {
+    Tree *child = (*tree)->right;
+    if (child->factor != (*tree)->factor) {
+        // Double rotation
+        int factor = child->left->factor;
+        treeRotateRight(&(*tree)->right);
+        treeRotateLeft(tree);
+        (*tree)->factor = 0;
+        // TODO figure out if this is OK
+        switch (factor) {
+            case 1:
+                (*tree)->left->factor   = -1;
+                (*tree)->right->factor  = 0;
+                break;
+            case 0:
+                (*tree)->left->factor   = 0;
+                (*tree)->right->factor  = 0;
+                break;
+            case -1:
+                (*tree)->left->factor   = 0;
+                (*tree)->right->factor  = 1;
+                break;
+        }
+    } else {
+        // Single rotation
+        treeRotateLeft(tree);
+        (*tree)->left->factor  = 0;
+        (*tree)->factor        = 0;
+    }
 
 }
 void treeRotateLeft(Tree **tree)
