@@ -6,11 +6,14 @@ int main(void)
     // Testing
     // Insert nodes
     Tree *tree = NULL;
-    treeInsertNodeAVL(&tree, 8);
+    treeInsertNode(&tree, 20);
     int i;
     //for (i = -1; i > -8; i--) {
-    for (i = 1; i < 8; i++) {
-        treeInsertNodeAVL(&tree, i);
+    for (i = 1; i < 20; i++) {
+        treeInsertNode(&tree, i);
+    }
+    for (i = 21; i < 41; i++) {
+        treeInsertNode(&tree, i);
     }
     // Find a node
     Tree *found = treeFindNode(tree, 22);

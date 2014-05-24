@@ -5,6 +5,7 @@
 #define INDENT 4
 
 // Private functions
+void    treeInsertNodeDumb(Tree **node, int key);
 // AVL insertion
 int     treeInsertNodeAVL(Tree **tree, int key);
 void    treeRotateLeft(Tree **tree);
@@ -24,8 +25,9 @@ Tree *treeMakeNode(int key, int factor)
     node->right     = NULL;
     return node;
 }
-void treeInsertNode(Tree *tree, int key)
+void treeInsertNodeDumb(Tree **node, int key)
 {
+    Tree *tree = *node;
     if (tree) {
         // Don't insert duplicates
         if (tree->key == key) {
@@ -35,19 +37,29 @@ void treeInsertNode(Tree *tree, int key)
         if (tree->key > key) {
             tree->factor -= 1;
             if (tree->left) {
-                treeInsertNode(tree->left, key);
+                treeInsertNodeDumb(&tree->left, key);
             } else {
                 tree->left = treeMakeNode(key, 0);
             }
         } else {
             tree->factor += 1;
             if (tree->right) {
-                treeInsertNode(tree->right, key);
+                treeInsertNodeDumb(&tree->right, key);
             } else {
                 tree->right = treeMakeNode(key, 0);
             }
         }
+    } else {
+        *node = treeMakeNode(key, 0);
     }
+}
+void treeInsertNode(Tree **tree, int key)
+{
+    // The dumb implementation
+    //treeInsertNodeDumb(tree, key);
+    
+    // The AVL version
+    treeInsertNodeAVL(tree, key);
 }
 int treeInsertNodeAVL(Tree **tree, int key)
 {

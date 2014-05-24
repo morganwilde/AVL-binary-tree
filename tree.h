@@ -10,7 +10,7 @@ typedef struct Tree {
 
 // Creation and insertion
 Tree *  treeMakeNode(int key, int factor);
-void    treeInsertNode(Tree *tree, int key);
+void    treeInsertNode(Tree **tree, int key);
 // Search
 Tree *  treeFindNode(Tree *tree, int key);
 // Printing
