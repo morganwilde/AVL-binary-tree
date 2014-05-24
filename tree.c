@@ -47,6 +47,7 @@ int treeInsertNodeAVL(Tree **tree, int key)
     if (!tree) {
         *tree = treeMakeNode(0, 0);
         return 1;
+
     }
 }
 void treeRotateLeft(Tree **tree)
