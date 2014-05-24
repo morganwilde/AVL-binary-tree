@@ -3,29 +3,17 @@
 
 int main(void)
 {
-    Tree *tree = treeMakeNode(0, 0);
-    treePrintNode(tree);
     // Testing
     // Insert nodes
+    Tree *tree = NULL;
+    treeInsertNodeAVL(&tree, 0);
     int i;
-    //for (i = 0; i > -3; i--) {
     for (i = 0; i < 3; i++) {
-        treeInsertNode(tree, i);
+        treeInsertNodeAVL(&tree, i);
     }
-    /*
-    treeInsertNode(&tree, 26);
-    treeInsertNode(&tree, 16);
-    treeInsertNode(&tree, 21);
-    treeInsertNode(&tree, 1);
-    treeInsertNode(&tree, 17);
-    */
     // Find a node
     Tree *found = treeFindNode(tree, 22);
-    treePrintNode(found);
-    //treeRotateLeft(&tree);
-    //treeInsertNode(tree, -1);
-    //treeInsertNode(tree, -2);
-    //treeRotateRight(&tree);
+    //treePrintNode(found);
     // Count nodes
     printf("Number of nodes in *tree: %d\n", treeCountNodes(tree));
     // Print out the tree

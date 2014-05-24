@@ -44,10 +44,54 @@ void treeInsertNode(Tree *tree, int key)
 }
 int treeInsertNodeAVL(Tree **tree, int key)
 {
-    if (!tree) {
-        *tree = treeMakeNode(0, 0);
+    Tree *  node    = *tree;
+    int     delta   = 0;
+    if (!node) {
+        *tree = treeMakeNode(key, 0);
         return 1;
-
+    } else {
+        // No duplicates allowed
+        if (node->key == key) {
+            return 0;
+        }
+        // Figure which branch to take
+        if (node->key > key) {
+            // Left
+            delta = treeInsertNodeAVL(&node->left, key);
+            if (delta == 0) {
+                return 0;
+            } else {
+                switch (node->factor) {
+                    case 1:
+                        node->factor = 0;
+                        return 0;
+                    case 0:
+                        node->factor = -1;
+                        return 1;
+                    case -1:
+                        // Fix left imba
+                        return 0;
+                }
+            }
+        } else {
+            // Right
+            delta = treeInsertNodeAVL(&node->right, key);
+            if (delta == 0) {
+                return 0;
+            } else {
+                switch (node->factor) {
+                    case 1:
+                        // Fix left imba
+                        return 0;
+                    case 0:
+                        node->factor = 1;
+                        return 1;
+                    case -1:
+                        node->factor = 0;
+                        return 0;
+                }
+            }
+        }
     }
 }
 void treeRotateLeft(Tree **tree)
@@ -121,7 +165,6 @@ void treePrinter(Tree *tree, int level)
 }
 int treeCountNodes(Tree *tree)
 {
-    printf("here\n");
     if (!tree) {
         return 0;
     } else {
