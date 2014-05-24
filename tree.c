@@ -5,149 +5,40 @@
 #define INDENT 4
 
 // Private functions
-int     treeInsertAVL(Tree **tree, int key);
-void    treeFixLeftImbalance(Tree **tree);
-void    treeFixRightImbalance(Tree **tree);
-void    treeRotateLeft(Tree **tree);
-void    treeRotateRight(Tree **tree);
-void    treePrinter(Tree *tree, int level);
+void treePrinter(Tree *tree, int level);
 // /Private functions
 
 Tree *treeMakeNode(int key, int factor)
 {
     Tree *node = malloc(sizeof(Tree));
     node->key       = key;
-    node->factor    = factor;
+    node->factor    = 0;
     node->left      = NULL;
     node->right     = NULL;
     return node;
 }
-void treeInsertNode(Tree **tree, int key)
+void treeInsertNode(Tree *tree, int key)
 {
-   treeInsertAVL(tree, key);
-}
-int treeInsertAVL(Tree **tree, int key)
-{
-    if (*tree) {
+    if (tree) {
         // Don't insert duplicates
-        if ((*tree)->key == key) {
+        if (tree->key == key) {
             return;
         }
         // Decide on the next branch
-        if ((*tree)->key > key) {
-            if ((*tree)->left) {
-                int delta = treeInsertAVL(&((*tree)->left), key);
-                if (!delta) {
-                    return 0;
-                } else {
-                    switch((*tree)->factor) {
-                        case 1: 
-                            (*tree)->factor = 0;
-                            return 0;
-                        case 0:
-                            (*tree)->factor = -1;
-                            return 1;
-                        case -1:
-                            treeFixLeftImbalance(tree);
-                            return 0;
-                    }
-                }
+        if (tree->key > key) {
+            if (tree->left) {
+                treeInsertNode(tree->left, key);
             } else {
-                (*tree)->left = treeMakeNode(key, 0);
-                return 1;
+                tree->left = treeMakeNode(key, 0);
             }
         } else {
-            if ((*tree)->right) {
-                int delta = treeInsertAVL(&((*tree)->right), key);
-                if (!delta) {
-                    return 0;
-                } else {
-                    switch((*tree)->factor) {
-                        case -1: 
-                            (*tree)->factor = 0;
-                            return 0;
-                        case 0:
-                            (*tree)->factor = 1;
-                            return 1;
-                        case 1:
-                            treeFixRightImbalance(tree);
-                            return 0;
-                    }
-                }
+            if (tree->right) {
+                treeInsertNode(tree->right, key);
             } else {
-                (*tree)->right = treeMakeNode(key, 0);
-                return 1;
+                tree->right = treeMakeNode(key, 0);
             }
         }
     }
-}
-void treeFixLeftImbalance(Tree **tree)
-{
-    Tree *child = (*tree)->left;
-    if (child->factor != (*tree)->factor) {
-        int factor = child->right->factor;
-        treeRotateLeft(&(*tree)->left);
-        treeRotateRight(tree);
-        (*tree)->factor = 0;
-        switch(factor) {
-            case -1: 
-                (*tree)->left->factor  = 0;
-                (*tree)->right->factor = 1;
-                break;
-            case 0:
-                (*tree)->left->factor  = 0;
-                (*tree)->right->factor = 0;
-                break;
-            case 1:
-                (*tree)->left->factor  = -1;
-                (*tree)->right->factor = 0;
-        }
-    } else {
-        treeRotateRight(tree);
-        (*tree)->factor = 0;
-        (*tree)->right->factor = 0;
-    }
-}
-void treeFixRightImbalance(Tree **tree)
-{
-    Tree *child = (*tree)->right;
-    if (child->factor != (*tree)->factor) {
-        int factor = child->left->factor;
-        treeRotateRight(&(*tree)->right);
-        treeRotateLeft(tree);
-        (*tree)->factor = 0;
-        switch(factor) {
-            case -1: 
-                (*tree)->left->factor  = 1;
-                (*tree)->right->factor = 0;
-                break;
-            case 0:
-                (*tree)->left->factor  = 0;
-                (*tree)->right->factor = 0;
-                break;
-            case 1:
-                (*tree)->left->factor  = 0;
-                (*tree)->right->factor = -1;
-        }
-    } else {
-        treeRotateLeft(tree);
-        (*tree)->factor = 0;
-        (*tree)->left->factor = 0;
-    }
-}
-void treeRotateLeft(Tree **tree)
-{
-    Tree *child = (*tree)->right;
-    (*tree)->right = child->left;
-    child->left = *tree;
-    *tree = child;
-}
-void treeRotateRight(Tree **tree)
-{
-    Tree *child = (*tree)->left;
-    (*tree)->left = child->right;
-    child->right = *tree;
-    *tree = child;
 }
 Tree *treeFindNode(Tree *tree, int key)
 {
@@ -196,7 +87,7 @@ void treePrinter(Tree *tree, int level)
         if (tree->left) {
             treePrinter(tree->left, level+1);
         }
-        printf("\x1b[37m%s\x1b[0m%d|\x1b[1;30;47m %d \x1b[0m\n", arrow, tree->factor, tree->key);
+        printf("\x1b[37m%s\x1b[0m%d|\x1b[1;30;47m %d \x1b[0m\n", arrow, treeCountHeight(tree), tree->key);
         if (tree->right) {
             treePrinter(tree->right, level+1);
         }
