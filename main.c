@@ -3,18 +3,13 @@
 
 int main(void)
 {
-    Tree *tree = treeMakeNode(5, 0);
+    Tree *tree = treeMakeNode(0, 0);
     treePrintNode(tree);
     // Testing
     // Insert nodes
     int i;
-    for (i = 1; i < 10; i++) {
-        if (i%2 == 0)
-            treeInsertNode(tree, i);
-    }
-    for (i = 1; i < 10; i++) {
-        if (i%2 == 1)
-            treeInsertNode(tree, i);
+    for (i = 0; i < 10; i++) {
+        treeInsertNode(tree, i);
     }
     /*
     treeInsertNode(&tree, 26);
