@@ -12,16 +12,19 @@ Query *dbInterpretQuery(const char *tokens)
     strcpy(temp, tokens);
     // Tokenize
     Query *query = NULL;
+    QueryType queryType = UNDEFINED;
+    IntentType queryIntent = UNKNOWN;
     temp = strtok(temp, " ");
     while (temp != NULL) {
-        dbAddQueryToken(&query, temp);
+        printf("token: [%s]\n", temp);
+        dbAddQueryToken(&query, temp, &queryType, &queryIntent);
         temp = strtok(NULL, " ");
     }
     tempAddress = realloc(tempAddress, 0);
     // Return results
     return query;
 }
-Query *dbAddQueryToken(Query **query, const char *token)
+Query *dbAddQueryToken(Query **query, const char *token, QueryType *continued, IntentType *intent)
 {
     if (!*query) {
         // Initialize the query object
@@ -43,8 +46,12 @@ Query *dbAddQueryToken(Query **query, const char *token)
         return link;
     } else {
         Query *link = *query;
-        dbAddQueryToken(&link->after, token);
-        link->after->before = *query;
+        // Fast forward to last element in list
+        while (link->after) {
+            link = link->after;
+        }
+        dbAddQueryToken(&link->after, token, continued, intent);
+        link->after->before = link;
         // Interpret the token
         // Find query type
         if (strcmp(token, "TABLE") == 0) {
@@ -54,41 +61,126 @@ Query *dbAddQueryToken(Query **query, const char *token)
                 link->type          = INTENT;
                 link->after->type   = INTENT;
                 // Value:       Create a new table
-                IntentType *value = malloc(sizeof(IntentType));
-                *value = CREATE_TABLE;
-                link->value = value;
-                link->after->value = value;
+                link->value         = malloc(sizeof(IntentType));
+                link->after->value  = malloc(sizeof(IntentType));
+                *(IntentType *)link->value          = CREATE_TABLE;
+                *(IntentType *)link->after->value   = CREATE_TABLE;
+                *intent = CREATE_TABLE;
             } else {
                 printf("Don't know what to do with TABLE %p\n", link->before);
             }
-        } 
-        return link->after;
+        } else if (strcmp(token, "(") == 0) {
+            // This is a delimeter
+            link->after->type = DELIMITER;
+            link->after->value = malloc(sizeof(DelimiterType));
+            *(DelimiterType *)link->after->value = BEGIN;
+            // Before the brace there must be the table name
+            if (link && strlen(link->token)) {
+                link->type = TABLE;
+                link->value = malloc(sizeof(char) * (strlen(link->token) + 1));
+                strcpy((char *)link->value, link->token);
+            }
+            // After the brace is a list of fields
+            *continued = FIELD;
+        } else if (strcmp(token, ")") == 0) {
+            if (*intent == CREATE_TABLE) {
+                // Record the type of constraint
+                Query *constraint = link;
+                while (constraint && constraint->type != CONSTRAINT) {
+                    constraint = constraint->before;
+                }
+                constraint->value = malloc(sizeof(char) * (strlen(constraint->after->token) + 1));
+                strcpy((char *)constraint->value, constraint->after->token);
+                // And it's value
+                link->type = CONSTRAINT_VALUE;
+                link->value = malloc(sizeof(char) * (strlen(link->token) + 1));
+                strcpy(link->value, link->token);
+            }
+            *continued = UNDEFINED;
+        } else {
+        // Find fields
+            if (*continued == FIELD) {
+                // CREATE TABLE field format: field_name type,
+                // INSERT field format: field_name = value,
+                if (*intent == CREATE_TABLE) {
+                    if (strstr(token, "PRIMARY") == NULL) {
+                        if (strstr(token, ",") == NULL) {
+                            // field_name
+                            link->type = FIELD_NAME;
+                            link->value = malloc(sizeof(char) * (strlen(token) + 1));
+                            strcpy((char *)link->value, token);
+                        } else {
+                            // type
+                            link->type = FIELD_TYPE;
+                            link->value = malloc(sizeof(FieldType));
+                            if (strstr(token, "char1") != NULL) {
+                                *(FieldType *)link->value = CHAR1;
+                            } else if (strstr(token, "char32") != NULL) {
+                                *(FieldType *)link->value = CHAR32;
+                            } else if (strstr(token, "integer") != NULL) {
+                                *(FieldType *)link->value = INTEGER;
+                            }
+                        }
+                    } else {
+                        // Define constraint - key
+                        link->type = CONSTRAINT;
+                    }
+                }
+            }
+        }
+        return NULL;
     }
 }
 void dbCommit(Query *query)
 {
     // Determine the type of the query
-    switch (query->type) {
-        case INTENT:
-            // Determine the intent of the query
-            switch (*(IntentType *)query->value) {
-                case CREATE_TABLE:
-                    printf("Go make a table\n");
-                    break;
-                case INSERT:
-                    printf("Insert something\n");
-                    break;
+    if (query->type == INTENT) {
+        // Determine the intent of the query
+        if (*(IntentType *)query->value == CREATE_TABLE) {
+            Query *queryTable = dbQueryFind(query, TABLE, NULL, TOEND);
+            char *tableName = (char *)queryTable->value;
+            printf("Go make a table [%s]\n", tableName);
+            // Check all the fields
+            Query *fields = query->after->after->after;
+            while (fields->type == FIELD_NAME) {
+                char *      fieldName = (char *)fields->value;
+                FieldType   fieldType = *(FieldType *)fields->after->value;
+                // On to the next one
+                fields = fields->after->after;
             }
-            break;
+            // Find the primary
+            Query *queryPrimary = dbQueryFind(query, CONSTRAINT, "PRIMARY", TOEND);
+            Query *queryPrimaryValue = queryPrimary->after;
+            char *fieldPrimary = (char *)queryPrimaryValue->value;
+        }
+        if (*(IntentType *)query->value == INSERT) {
+            printf("Insert something\n");
+        }
     }
-    printf("query->type: [%d]\n", query->type);
-    printf("query->value: [%d]\n", *(IntentType *)query->value);
-    /*
-    while (query) {
-        printf("query->token: [%s]\n", query->token);
-        query = query->after;
+}
+Query *dbQueryFind(Query *query, QueryType type, void *value, DirectionType direction)
+{
+    if (!query) {
+        return NULL;
+    } else if (query->type == type) {
+        switch (type) {
+            case TABLE:
+                return query;
+            case CONSTRAINT:
+                if (strcmp((char *)query->value, (char *)value) == 0) {
+                    return query;
+                } else {
+                    goto skipQuery;
+                }
+        }
+    } else {
+skipQuery:
+        if (direction == TOEND) {
+            return dbQueryFind(query->after, type, value, direction);
+        } else if (direction == TOSTART) {
+            return dbQueryFind(query->before, type, value, direction);
+        }
     }
-    */
 }
 /*
     // Testing

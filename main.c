@@ -5,11 +5,10 @@ int main(void)
     Query *query = dbInterpretQuery(
         "CREATE TABLE elements ( "
             "number  integer, "
-            "name    char[2], "
+            "name    char32, "
             "PRIMARY number "
-        ");");
+        ") SORT BY number;");
     dbCommit(query);
-    dbCommit(dbInterpretQuery("INSERT"));
 
     return 0;
 }
