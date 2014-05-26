@@ -52,7 +52,5 @@ typedef struct Query {
 Query *dbAddQueryToken(Query **query, const char *token, QueryType *continued, IntentType *intent);
 Query *dbInterpretQuery(const char *query);
 void dbCommit(Query *query);
-// To be made private
-Query *dbQueryFind(Query *query, QueryType type, void *value, DirectionType direction);
 
 #endif /* DATABASE_H  */

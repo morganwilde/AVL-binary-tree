@@ -8,3 +8,5 @@ compile: main.c \
 	    tree.c \
 	    database.c -o main
 	./main
+	cat data/elements.db
+	rm data/elements.db

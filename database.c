@@ -4,6 +4,12 @@
 #include "tree.h"
 #include "database.h"
 
+// Private interface
+Query *dbQueryFind(Query *query, QueryType type, void *value, DirectionType direction);
+FILE *dbTableCreate(const char *name);
+FILE *dbTableOpen(const char *name);
+
+// Implementations
 Query *dbInterpretQuery(const char *tokens)
 {
     // Copy the string to avoid mutation
@@ -139,19 +145,35 @@ void dbCommit(Query *query)
         if (*(IntentType *)query->value == CREATE_TABLE) {
             Query *queryTable = dbQueryFind(query, TABLE, NULL, TOEND);
             char *tableName = (char *)queryTable->value;
-            printf("Go make a table [%s]\n", tableName);
-            // Check all the fields
+            // Check if the table doesn't already exist
+            FILE *table = dbTableOpen(tableName);
+            if (table) {
+                printf("Table '%s' already exists!\n", tableName);
+                return;
+            } else {
+                table = dbTableCreate(tableName);
+                fprintf(table, "%s\n", tableName);
+            }
+            // Find the primary field
+            Query *queryPrimary = dbQueryFind(query, CONSTRAINT, "PRIMARY", TOEND);
+            Query *queryPrimaryValue = queryPrimary->after;
+            char *fieldPrimary = (char *)queryPrimaryValue->value;
+            printf("[%s]\n", fieldPrimary);
+            fprintf(table, "[%s]\n", fieldPrimary);
+            // Check all the rest
+            int fieldCount = 0;
             Query *fields = query->after->after->after;
             while (fields->type == FIELD_NAME) {
                 char *      fieldName = (char *)fields->value;
                 FieldType   fieldType = *(FieldType *)fields->after->value;
+                // Save to table
+                fprintf(table, "%-16s:%d\n", fieldName, fieldType);
                 // On to the next one
                 fields = fields->after->after;
+                fieldCount++;
             }
-            // Find the primary
-            Query *queryPrimary = dbQueryFind(query, CONSTRAINT, "PRIMARY", TOEND);
-            Query *queryPrimaryValue = queryPrimary->after;
-            char *fieldPrimary = (char *)queryPrimaryValue->value;
+            fprintf(table, "#%d\n", fieldCount);
+            fclose(table);
         }
         if (*(IntentType *)query->value == INSERT) {
             printf("Insert something\n");
@@ -181,6 +203,30 @@ skipQuery:
             return dbQueryFind(query->before, type, value, direction);
         }
     }
+}
+FILE *dbTableCreate(const char *name)
+{
+    // Assemble the file
+    char *filename = malloc(sizeof(char) * (strlen("data/") + strlen(name) + strlen(".db") + 1));
+    strcat(filename, "data/");
+    strcat(filename, name);
+    strcat(filename, ".db");
+    // Test for it
+    FILE *file = fopen(filename, "w");
+    
+    return file;
+}
+FILE *dbTableOpen(const char *name)
+{
+    // Assemble the file
+    char *filename = malloc(sizeof(char) * (strlen("data/") + strlen(name) + strlen(".db") + 1));
+    strcat(filename, "data/");
+    strcat(filename, name);
+    strcat(filename, ".db");
+    // Test for it
+    FILE *file = fopen(filename, "r");
+    
+    return file;
 }
 /*
     // Testing
