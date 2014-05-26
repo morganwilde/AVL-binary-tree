@@ -1,7 +1,10 @@
 compile: main.c \
     tree.c \
-    tree.h
+    tree.h \
+    database.c \
+    database.h
 	gcc \
 	    main.c \
-	    tree.c -o main
+	    tree.c \
+	    database.c -o main
 	./main
